@@ -5,6 +5,24 @@ import * as JSON5 from 'json5';
 import { DotNetCoreVersionFetcher } from "./versionfetcher";
 import { VersionInfo } from "./models";
 
+
+// Reference https://learn.microsoft.com/en-us/dotnet/core/tools/global-json for type options and matching
+const RollForwardOptionKeys = ["patch", "feature", "minor", "major", "latestPatch", "latestFeature", "latestMinor", "latestMajor", "disable"] as const;
+
+type RollForwardOption = typeof RollForwardOptionKeys[number];
+
+function isRollForwardOption(value: string): value is RollForwardOption {
+    return RollForwardOptionKeys.includes(value as RollForwardOption);
+}
+
+type GlobalJsonConfig = { 
+    sdk: { 
+        version: string
+        allowPrerelease?: boolean
+        rollForward?: RollForwardOption | string
+    } 
+}
+
 export class globalJsonFetcher {
 
     private workingDirectory: string;
@@ -53,7 +71,7 @@ export class globalJsonFetcher {
     }
 
     private readGlobalJson(path: string): GlobalJson | null {
-        let globalJson: GlobalJson | null = null;
+        let globalJson: GlobalJsonConfig | undefined;
         tl.loc("GlobalJsonFound", path);
         try {
             let fileContent = fileSystem.readFileSync(path);
@@ -64,16 +82,23 @@ export class globalJsonFetcher {
                 return null;
             }
 
-            globalJson = (JSON5.parse(fileContent.toString())) as { sdk: { version: string } };
+            globalJson = (JSON5.parse(fileContent.toString())) as GlobalJsonConfig;
         } catch (error) {
             // we throw if the global.json is invalid
-            throw tl.loc("FailedToReadGlobalJson", path, error); // We don't throw if a global.json is invalid.
+            throw tl.loc("FailedToReadGlobalJson", path, error); // We don't throw if a global.json is invalid. // ( ಠ ಠ )
         }
 
-        if (globalJson == null || globalJson.sdk == null || globalJson.sdk.version == null) {
+        if (!globalJson || !globalJson.sdk || !globalJson.sdk.version) { //todo officially global.json allows also for sdk.version to be missing in certain cases (e.g. fallback to latestMajor/ rollForward specified)
             tl.loc("FailedToReadGlobalJson", path);
             return null;
         }
+
+        if(globalJson.sdk.rollForward && !isRollForwardOption(globalJson.sdk.rollForward)){
+            tl.loc("GlobalJsonUnknownRollForwardOption", globalJson.sdk.rollForward, path);
+            return null;
+        }
+
+        //TODO check if availbale config matches to allowed options
 
         return globalJson;
     }

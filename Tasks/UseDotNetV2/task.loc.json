@@ -199,6 +199,7 @@
     "GlobalJsonFound": "ms-resource:loc.messages.GlobalJsonFound",
     "GlobalJsonSdkVersion": "ms-resource:loc.messages.GlobalJsonSdkVersion",
     "GlobalJsonIsEmpty": "ms-resource:loc.messages.GlobalJsonIsEmpty",
+    "GlobalJsonUnknownRollForwardOption": "ms-resource:loc.messages.GlobalJsonUnknownRollForwardOption",
     "FailedToFindGlobalJson": "ms-resource:loc.messages.FailedToFindGlobalJson",
     "FailedToReadGlobalJson": "ms-resource:loc.messages.FailedToReadGlobalJson",
     "VersionNumberHasTheWrongFormat": "ms-resource:loc.messages.VersionNumberHasTheWrongFormat",
